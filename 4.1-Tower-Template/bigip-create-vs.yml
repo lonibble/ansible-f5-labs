@@ -1,6 +1,6 @@
 ---
 - name: BIG-IP SETUP
-  hosts: lb
+  hosts: tag_lb
   connection: local
   gather_facts: false
 
@@ -15,9 +15,9 @@
     - name: CREATE NODES
       bigip_node:
         provider: "{{ provider }}"
-        host: "{{ hostvars[item].private_ip }}"
-        name: "{{ hostvars[item].inventory_hostname }}"
-      loop: "{{ groups['webservers'] }}"
+        host: "{{ hostvars[item].private_ip_address }}"
+        name: "{{ hostvars[item].ec2_tag_Name }}"
+      loop: "{{ groups['tag_webservers'] }}"
 
     - name: CREATE POOL
       bigip_pool:
@@ -31,17 +31,17 @@
       bigip_pool_member:
         provider: "{{ provider }}"
         state: "present"
-        name: "{{ hostvars[item].inventory_hostname }}"
-        host: "{{ hostvars[item].private_ip }}"
+        name: "{{ hostvars[item].ec2_tag_Name }}"
+        host: "{{ hostvars[item].private_ip_address }}"
         port: "80"
         pool: "http_pool"
-      loop: "{{ groups['webservers'] }}"
+      loop: "{{ groups['tag_webservers'] }}"
 
     - name: ADD VIRTUAL SERVER
       bigip_virtual_server:
         provider: "{{ provider }}"
         name: "vip"
-        destination: "{{ private_ip }}"
+        destination: "{{ private_ip_address }}"
         port: "443"
         enabled_vlans: "all"
         all_profiles: ['http','clientssl','oneconnect']
